@@ -2,81 +2,39 @@ var express = require("express");
 var router = express.Router();
 let bcrypt = require('bcrypt')
 let userModel = require("../schemas/users");
-let { body, validationResult } = require('express-validator')
+let { validatedResult, CreateAnUserValidator, ModifyAnUserValidator } = require('../utils/validator')
+let userController = require('../controllers/users')
+let {CheckLogin} = require('../utils/authHandler')
 
-
-router.get("/", async function (req, res, next) {
-  let users = await userModel
-    .find({ isDeleted: false })
+router.get("/", CheckLogin, async function (req, res, next) {
+  let users = await userController.GetAllUser()
   res.send(users);
 });
 
 router.get("/:id", async function (req, res, next) {
-  try {
-    let result = await userModel
-      .find({ _id: req.params.id, isDeleted: false })
-    if (result.length > 0) {
-      res.send(result);
-    }
-    else {
-      res.status(404).send({ message: "id not found" });
-    }
-  } catch (error) {
-    res.status(404).send({ message: "id not found" });
+  let result = await userController.GetUserById(
+    req.params.id
+  )
+  if (result) {
+    res.send(result);
+  } else {
+    res.status(404).send({ message: "id not found" })
   }
 });
 
-router.post("/",
-  [
-    body('email').isEmail().withMessage("email sai dinh dang"),
-    body('username').isAlphanumeric().withMessage("username khong duoc chua ki tu dac biet"),
-    body('password').isStrongPassword({
-      minLength: 8,
-      minLowercase: 1,
-      minNumbers: 1,
-      minSymbols: 1,
-      minUppercase: 1
-    }).withMessage("password phai co it nhat 8 ki tu trong do co it nhat 1 ki tu chu hoa, 1 ki tu chu thuong,1 ki tu so va 1 ki tu dac biet")
-  ],
-  function (req, res, next) {
-    let result = validationResult(req);
-    if (result.errors.length > 0) {
-      res.status(404).send(result.errors.map(
-        function(e){
-          return {
-            [e.path]:e.msg
-          }
-        }
-      ));
-      return;
-    }
-    next();
+router.post("/", CreateAnUserValidator, validatedResult, async function (req, res, next) {
+  try {
+    let user = await userController.CreateAnUser(
+      req.body.username, req.body.password,
+      req.body.email, req.body.role
+    )
+    res.send(user);
+  } catch (err) {
+    res.status(400).send({ message: err.message });
   }
-  , async function (req, res, next) {
-    try {
-      let newItem = new userModel({
-        username: req.body.username,
-        password: req.body.password,
-        email: req.body.email,
-        fullName: req.body.fullName,
-        avatarUrl: req.body.avatarUrl,
-        status: req.body.status,
-        role: req.body.role,
-        loginCount: req.body.loginCount
-      });
+});
 
-      await newItem.save();
-
-      // populate cho đẹp
-      let saved = await userModel
-        .findById(newItem._id)
-      res.send(saved);
-    } catch (err) {
-      res.status(400).send({ message: err.message });
-    }
-  });
-
-router.put("/:id", async function (req, res, next) {
+router.put("/:id", ModifyAnUserValidator, validatedResult, async function (req, res, next) {
   try {
     let id = req.params.id;
     let updatedItem = await userModel.findByIdAndUpdate

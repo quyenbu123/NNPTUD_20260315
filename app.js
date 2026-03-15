@@ -25,8 +25,9 @@ app.use('/api/v1/users', require('./routes/users'));
 app.use('/api/v1/products', require('./routes/products'));
 app.use('/api/v1/categories', require('./routes/categories'));
 app.use('/api/v1/roles', require('./routes/roles'));
+app.use('/api/v1/auth', require('./routes/auth'));
 
-mongoose.connect('mongodb://localhost:27017/NNPTUD-C3');
+mongoose.connect('mongodb+srv://caodangquyenpt12345_db_user:gUeNGseiPdorYMC6@cluster0.fzczksr.mongodb.net/?appName=Cluster0');
 mongoose.connection.on('connected',()=>{
   console.log("connected");
 })

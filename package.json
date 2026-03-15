@@ -1,5 +1,5 @@
 {
-  "name": "nnptud-c3",
+  "name": "nnptud_22060315",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -13,6 +13,7 @@
     "express": "~4.16.1",
     "express-validator": "^7.3.1",
     "http-errors": "~1.6.3",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.3",
     "morgan": "~1.9.1",
     "nodemon": "^3.1.14",
