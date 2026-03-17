@@ -1,4 +1,5 @@
 let mongoose = require('mongoose');
+let inventoryModel = require('./inventories');
 let productSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -46,6 +47,27 @@ productSchema.pre('save', async function () {
     });
     if (products.length > 0) {
         this.slug = this.slug + "-" + products.length
+    }
+})
+
+productSchema.post('save', async function (doc, next) {
+    try {
+        await inventoryModel.findOneAndUpdate(
+            { product: doc._id },
+            {
+                $setOnInsert: {
+                    product: doc._id
+                }
+            },
+            {
+                upsert: true,
+                new: true,
+                setDefaultsOnInsert: true
+            }
+        );
+        next();
+    } catch (error) {
+        next(error);
     }
 })
 module.exports = new mongoose.model(
